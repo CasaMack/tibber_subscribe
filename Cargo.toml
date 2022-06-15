@@ -1,5 +1,5 @@
 [package]
-name = "tibber_status"
+name = "tibber_subscribe"
 version = "0.1.0"
 edition = "2021"
 

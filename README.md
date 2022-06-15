@@ -1,4 +1,4 @@
-# tibber_status
+# tibber_subscribe
 
 Automatically write charger status to influxdb
 

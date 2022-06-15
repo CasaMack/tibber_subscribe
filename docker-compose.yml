@@ -1,7 +1,7 @@
 version: "3.9"  # optional since v1.27.0
 services:
   server:
-    image: areskiko/tibber_status
+    image: areskiko/tibber_subscribe
 
     # Needed to pass token if not set as environment variables
     tty: true
@@ -32,4 +32,4 @@ volumes:
     driver_opts:
       type: 'none'
       o: 'bind'
-      device: '/var/log/CasaMack/tibber_status'
+      device: '/var/log/CasaMack/tibber_subscribe'

@@ -1,8 +1,9 @@
-use influxdb::Client;
-use tibber_status::v1::{run::{
-    get_api_endpoint, get_db_info, get_logger, get_token, get_home_id, write_to_db,
-}, tibber::{SubscriptionQueryBuilder, Field}};
 use http;
+use influxdb::Client;
+use tibber_subscribe::v1::{
+    run::{get_api_endpoint, get_db_info, get_home_id, get_logger, get_token, write_to_db},
+    tibber::{Field, SubscriptionQueryBuilder},
+};
 use tungstenite;
 
 #[tokio::main]
@@ -17,11 +18,9 @@ async fn main() {
     let auth = get_token();
     let home_id = get_home_id();
 
-
     let subscription_request = SubscriptionQueryBuilder::new(auth.clone().to_string(), home_id)
         .with(Field::Power)
         .build();
-
 
     let request = http::Request::builder()
         //.uri("wss://api.tibber.com/v1-beta/gql/subscriptions")
@@ -51,16 +50,33 @@ async fn main() {
 
         let client = Client::new(db_addr.clone().as_str(), db_name.clone().as_str());
 
-        socket.write_message(tungstenite::Message::Text(subscription_request.connection())).unwrap();
-        socket.write_message(tungstenite::Message::Text(subscription_request.subscription())).unwrap();
+        socket
+            .write_message(tungstenite::Message::Text(
+                subscription_request.connection(),
+            ))
+            .unwrap();
+        socket
+            .write_message(tungstenite::Message::Text(
+                subscription_request.subscription(),
+            ))
+            .unwrap();
         loop {
             let resp = socket.read_message();
             match resp {
                 Ok(msg) => {
-                    let msg_json: serde_json::Value = serde_json::from_str(&msg.to_string()).unwrap();
-                    let data = msg_json["payload"]["data"]["liveMeasurement"].as_object().unwrap();
+                    let msg_json: serde_json::Value =
+                        serde_json::from_str(&msg.to_string()).unwrap();
+                    let data = msg_json["payload"]["data"]["liveMeasurement"]
+                        .as_object()
+                        .unwrap();
                     for key in data.keys() {
-                        write_to_db(&client, key.to_string(), data[key].as_f64().unwrap(), "liveMeasurement").await;
+                        write_to_db(
+                            &client,
+                            key.to_string(),
+                            data[key].as_f64().unwrap(),
+                            "liveMeasurement",
+                        )
+                        .await;
                     }
                     tracing::trace!("[{}] Received: {}", chrono::Local::now(), msg);
                 }
