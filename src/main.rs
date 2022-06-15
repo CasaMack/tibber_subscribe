@@ -20,6 +20,7 @@ async fn main() {
 
     let subscription_request = SubscriptionQueryBuilder::new(auth.clone().to_string(), home_id)
         .with(Field::Power)
+        .with(Field::AccumulatedConsumptionLastHour)
         .build();
 
     let request = http::Request::builder()
