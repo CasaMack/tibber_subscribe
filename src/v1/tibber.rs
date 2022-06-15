@@ -16,7 +16,10 @@ impl SubscriptionQuery {
     }
 
     pub fn connection(&self) -> String {
-        format!("{{\"type\":\"connection_init\",\"payload\":\"token={}\"}}", self.token)
+        format!(
+            "{{\"type\":\"connection_init\",\"payload\":\"token={}\"}}",
+            self.token
+        )
     }
 
     pub fn subscription(&self) -> String {
@@ -31,7 +34,7 @@ impl SubscriptionQuery {
 pub struct SubscriptionQueryBuilder {
     token: String,
     home_id: String,
-    fields: Vec<Field>
+    fields: Vec<Field>,
 }
 
 impl SubscriptionQueryBuilder {
@@ -39,7 +42,7 @@ impl SubscriptionQueryBuilder {
         SubscriptionQueryBuilder {
             token,
             home_id,
-            fields: Vec::new()
+            fields: Vec::new(),
         }
     }
 
@@ -52,7 +55,12 @@ impl SubscriptionQueryBuilder {
         SubscriptionQuery::new(
             self.token,
             self.home_id,
-            self.fields.iter().map(|f| f.to_string()).collect::<Vec<String>>().join("\\n").to_string()
+            self.fields
+                .iter()
+                .map(|f| f.to_string())
+                .collect::<Vec<String>>()
+                .join("\\n")
+                .to_string(),
         )
     }
 }

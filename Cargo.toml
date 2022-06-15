@@ -12,7 +12,10 @@ tracing-appender = { version = "0.2" }
 influxdb = { version = "0.5.2", features = ["derive"] }
 chrono = { version = "0.4" }
 tracing = { version = "0.1" }
-tungstenite = { version = "0.17" }
+tungstenite = { version = "0.17", features=["native-tls"] }
 http = { version = "0.2" }
 serde_json = { version = "1.0" }
 tokio = { version = "1.19", features = ["full"] }
+
+# Thou shall compile
+openssl = { version = "0.10.29", features = ["vendored"] }

@@ -35,7 +35,6 @@ pub fn get_home_id() -> String {
     api_endpoint
 }
 
-
 #[instrument]
 pub fn get_token() -> Arc<String> {
     let token;
@@ -97,7 +96,6 @@ pub fn get_logger() -> (
     (subscriber, guard)
 }
 
-
 #[derive(InfluxDbWriteable)]
 struct DBPriceInfo {
     pub time: DateTime<Utc>,
@@ -106,6 +104,7 @@ struct DBPriceInfo {
     pub value: f64,
 }
 
+//TODO fails
 #[instrument(skip(client), level = "trace")]
 pub async fn write_to_db(client: &Client, field: String, value: f64, measurement: &str) {
     let variable = DBPriceInfo {
@@ -124,5 +123,3 @@ pub async fn write_to_db(client: &Client, field: String, value: f64, measurement
         }
     }
 }
-
-

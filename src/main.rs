@@ -48,27 +48,37 @@ async fn main() {
             tracing::info!("* {}", header);
         }
 
-        let client = Client::new(db_addr.clone().as_str(), db_name.clone().as_str());
+        let client = Client::new(db_addr.as_str(), db_name.as_str());
 
         socket
             .write_message(tungstenite::Message::Text(
                 subscription_request.connection(),
             ))
-            .unwrap();
+            .unwrap_or_else(|e| {
+                tracing::error!("Failed to request connection: {}", e);
+            });
         socket
             .write_message(tungstenite::Message::Text(
                 subscription_request.subscription(),
             ))
-            .unwrap();
+            .unwrap_or_else(|e| {
+                tracing::error!("Failed to request subscription: {}", e);
+            });
         loop {
             let resp = socket.read_message();
             match resp {
                 Ok(msg) => {
-                    let msg_json: serde_json::Value =
-                        serde_json::from_str(&msg.to_string()).unwrap();
-                    let data = msg_json["payload"]["data"]["liveMeasurement"]
-                        .as_object()
-                        .unwrap();
+                    let msg_json: serde_json::Value = serde_json::from_str(&msg.to_string())
+                        .unwrap_or_else(|e| {
+                            tracing::error!("Failed to parse message: {}", e);
+                            serde_json::Value::Null
+                        });
+                    let data = msg_json["payload"]["data"]["liveMeasurement"].as_object();
+                    if data.is_none() {
+                        tracing::debug!("Skipping message");
+                        continue;
+                    }
+                    let data = data.unwrap();
                     for key in data.keys() {
                         write_to_db(
                             &client,
@@ -78,10 +88,10 @@ async fn main() {
                         )
                         .await;
                     }
-                    tracing::trace!("[{}] Received: {}", chrono::Local::now(), msg);
+                    tracing::trace!("Received: {}", msg);
                 }
                 Err(e) => {
-                    tracing::error!("[{}] Error on read: {}", chrono::Local::now(), e);
+                    tracing::error!("Error on read: {}", e);
                     break;
                 }
             }
@@ -89,6 +99,7 @@ async fn main() {
     // socket.close(None);
     } else {
         if let Err(e) = connection_result {
+            tracing::error!("Error on connect: {}", e);
             println!("Error: {}", e);
             return;
         }
