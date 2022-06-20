@@ -65,6 +65,7 @@ async fn main() {
             .unwrap_or_else(|e| {
                 tracing::error!("Failed to request subscription: {}", e);
             });
+        tracing::info!("Subscribtion request sent");
         loop {
             let resp = socket.read_message();
             match resp {
@@ -76,7 +77,13 @@ async fn main() {
                         });
                     let data = msg_json["payload"]["data"]["liveMeasurement"].as_object();
                     if data.is_none() {
-                        tracing::debug!("Skipping message");
+                        let payload_type = msg_json["type"].as_str().unwrap();
+                        if payload_type == "connection_ack" {
+                            tracing::info!("Subscription request acknowledged");
+                        } else {
+                            tracing::warn!("Anomalous response type: {}", payload_type);
+                            tracing::debug!("Response: {:?}", msg_json);
+                        }
                         continue;
                     }
                     let data = data.unwrap();
