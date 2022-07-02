@@ -1,6 +1,7 @@
-use std::{env, sync::Arc};
+use std::{env, sync::Arc, time::Duration};
 
 use chrono::{DateTime, Utc};
+use http;
 use influxdb::{Client, InfluxDbWriteable};
 use tracing::{instrument, metadata::LevelFilter, Level};
 use tracing_appender::non_blocking::{NonBlocking, WorkerGuard};
@@ -8,6 +9,7 @@ use tracing_subscriber::{
     fmt::format::{DefaultFields, FmtSpan, Format},
     FmtSubscriber,
 };
+use tungstenite;
 
 #[instrument]
 pub fn get_db_info() -> (Arc<String>, Arc<String>) {
@@ -122,4 +124,114 @@ pub async fn write_to_db(client: &Client, field: String, value: f64, measurement
             tracing::error!("Writing failed: {}", e);
         }
     }
+}
+
+#[instrument]
+pub async fn handle(
+    api_endpoint: Arc<String>,
+    db_addr: Arc<String>,
+    db_name: Arc<String>,
+    connection_request: String,
+    subscription_request: String,
+) -> Result<(), ()> {
+    let request = http::Request::builder()
+        //.uri("wss://api.tibber.com/v1-beta/gql/subscriptions")
+        .uri(api_endpoint.as_str())
+        .header("Upgrade", "websocket")
+        .header("Connection", "keep-alive,Upgrade")
+        .header("Host", "api.tibber.com")
+        .header("Sec-WebSocket-Version", "13")
+        .header("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==")
+        .header("Sec-WebSocket-Protocol", "graphql-ws")
+        .body(())
+        .unwrap();
+
+    let connection_result = tungstenite::connect(request);
+    let connection;
+
+    if let Ok(c) = connection_result {
+        connection = c;
+        let mut socket = connection.0;
+        let response = connection.1;
+        tracing::info!("Connected to the server");
+        tracing::info!("Response HTTP code: {}", response.status());
+        tracing::info!("Response contains the following headers:");
+        for (ref header, _value) in response.headers() {
+            tracing::info!("* {}", header);
+        }
+
+        let client = Client::new(db_addr.as_str(), db_name.as_str());
+
+        socket
+            .write_message(tungstenite::Message::Text(connection_request))
+            .unwrap_or_else(|e| {
+                tracing::error!("Failed to request connection: {}", e);
+            });
+        socket
+            .write_message(tungstenite::Message::Text(subscription_request))
+            .unwrap_or_else(|e| {
+                tracing::error!("Failed to request subscription: {}", e);
+            });
+        tracing::info!("Subscribtion request sent");
+        let sock_arc = std::sync::Arc::new(std::sync::Mutex::new(socket));
+        loop {
+            let sock_ref = sock_arc.clone();
+            let resp = tokio::time::timeout(Duration::from_secs(10), tokio::task::spawn_blocking(move || {sock_ref.lock().unwrap().read_message()})).await;
+            if let Err(_) = resp{
+                return Err(());
+            }
+            let resp = resp.unwrap();
+            if let Err(_) = resp{
+                return Err(());
+            }
+            let resp = resp.unwrap();
+            if let Err(_) = resp{
+                return Err(());
+            }
+            match resp {
+                Ok(msg) => {
+                    let msg_json: serde_json::Value = serde_json::from_str(&msg.to_string())
+                        .unwrap_or_else(|e| {
+                            tracing::error!("Failed to parse message: {}", e);
+                            serde_json::Value::Null
+                        });
+                    let data = msg_json["payload"]["data"]["liveMeasurement"].as_object();
+                    if data.is_none() {
+                        let payload_type = msg_json["type"].as_str().unwrap();
+                        if payload_type == "connection_ack" {
+                            tracing::info!("Subscription request acknowledged");
+                        } else {
+                            tracing::warn!("Anomalous response type: {}", payload_type);
+                            tracing::debug!("Response: {:?}", msg_json);
+                        }
+                        continue;
+                    }
+                    let data = data.unwrap();
+                    for key in data.keys() {
+                        write_to_db(
+                            &client,
+                            key.to_string(),
+                            data[key].as_f64().unwrap(),
+                            "liveMeasurement",
+                        )
+                        .await;
+                    }
+                    tracing::trace!("Received: {}", msg);
+                }
+                Err(e) => {
+                    tracing::error!("Error on read: {}", e);
+                    return Err(());
+                }
+            }
+        }
+    // socket.close(None);
+    } else {
+        if let Err(e) = connection_result {
+            tracing::error!("Error on connect: {}", e);
+            println!("Error: {}", e);
+            return Err(());
+        }
+    }
+
+    Ok(())
 }
