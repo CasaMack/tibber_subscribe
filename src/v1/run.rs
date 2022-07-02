@@ -126,7 +126,7 @@ pub async fn write_to_db(client: &Client, field: String, value: f64, measurement
     }
 }
 
-#[instrument]
+#[instrument(skip_all)]
 pub async fn handle(
     api_endpoint: Arc<String>,
     db_addr: Arc<String>,
