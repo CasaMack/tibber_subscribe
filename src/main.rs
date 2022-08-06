@@ -17,21 +17,27 @@ async fn main() {
 
     let subscription_request = SubscriptionQueryBuilder::new(auth.clone().to_string(), home_id)
         .with(Field::Power)
+        .with(Field::LastMeterConsumption)
         .with(Field::AccumulatedConsumptionLastHour)
+        .with(Field::MinPower)
+        .with(Field::AveragePower)
+        .with(Field::MaxPower)
         .build();
 
     loop {
-
         let res = handle(
             api_endpoint.clone(),
             db_addr.clone(),
             db_name.clone(),
             subscription_request.connection(),
             subscription_request.subscription(),
-        ).await;
+        )
+        .await;
         match res {
-        Ok(_) => {},
-        Err(_) => {tracing::error!("Top level error")},
+            Ok(_) => {}
+            Err(_) => {
+                tracing::error!("Top level error")
+            }
+        }
     }
-}
 }
