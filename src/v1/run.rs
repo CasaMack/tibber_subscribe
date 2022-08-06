@@ -102,16 +102,16 @@ pub fn get_logger() -> (
 struct DBPriceInfo {
     pub time: DateTime<Utc>,
     #[influxdb(tag)]
-    pub field: String,
+    pub field_name: String,
     pub value: f64,
 }
 
 //TODO fails
 #[instrument(skip(client), level = "trace")]
-pub async fn write_to_db(client: &Client, field: String, value: f64, measurement: &str) {
+pub async fn write_to_db(client: &Client, field_name: String, value: f64, measurement: &str) {
     let variable = DBPriceInfo {
         time: Utc::now(),
-        field,
+        field_name,
         value,
     };
 
@@ -176,16 +176,20 @@ pub async fn handle(
         let sock_arc = std::sync::Arc::new(std::sync::Mutex::new(socket));
         loop {
             let sock_ref = sock_arc.clone();
-            let resp = tokio::time::timeout(Duration::from_secs(10), tokio::task::spawn_blocking(move || {sock_ref.lock().unwrap().read_message()})).await;
-            if let Err(_) = resp{
+            let resp = tokio::time::timeout(
+                Duration::from_secs(10),
+                tokio::task::spawn_blocking(move || sock_ref.lock().unwrap().read_message()),
+            )
+            .await;
+            if let Err(_) = resp {
                 return Err(());
             }
             let resp = resp.unwrap();
-            if let Err(_) = resp{
+            if let Err(_) = resp {
                 return Err(());
             }
             let resp = resp.unwrap();
-            if let Err(_) = resp{
+            if let Err(_) = resp {
                 return Err(());
             }
             match resp {
