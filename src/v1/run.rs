@@ -139,10 +139,13 @@ pub async fn handle(
         .uri(api_endpoint.as_str())
         .header("Upgrade", "websocket")
         .header("Connection", "keep-alive,Upgrade")
-        .header("Host", "api.tibber.com")
+        //.header("Host", "api.tibber.com")
+        .header("Sec-Fetch-Site", "same-site")
         .header("Sec-WebSocket-Version", "13")
-        .header("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==")
+        .header("Sec-WebSocket-Key", "WLdHXaAAsuz+gOeXHLJpvQ==")
         .header("Sec-WebSocket-Protocol", "graphql-ws")
+        .header("Accept", "*/*")
+        .header("Cache-Control", "no-cache")
         .body(())
         .unwrap();
 
