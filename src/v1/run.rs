@@ -140,6 +140,7 @@ pub async fn handle(
         .header("Upgrade", "websocket")
         .header("Connection", "keep-alive,Upgrade")
         //.header("Host", "api.tibber.com")
+        .header("Host", "websocket-api.tibber.com")
         .header("Sec-Fetch-Site", "same-site")
         .header("Sec-WebSocket-Version", "13")
         .header("Sec-WebSocket-Key", "WLdHXaAAsuz+gOeXHLJpvQ==")
