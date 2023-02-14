@@ -88,7 +88,7 @@ pub fn get_logger() -> (
     let subscriber = FmtSubscriber::builder()
         // all spans/events with a level higher than TRACE (e.g, debug, info, warn, etc.)
         // will be written to stdout.
-        .with_span_events(FmtSpan::NONE)
+        //.with_span_events(FmtSpan::NONE)
         .with_ansi(false)
         .with_max_level(level)
         .with_writer(non_blocking_appender)
@@ -134,9 +134,10 @@ pub async fn handle(
     connection_request: String,
     subscription_request: String,
 ) -> Result<(), ()> {
+    tracing::debug!("Building request");
     let request = http::Request::builder()
+        .uri(api_endpoint.as_ref())
         .header("Host", "websocket-api.tibber.com")
-        .header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/110.0")
         .header("Accept", "*/*")
         .header("Accept-Language", "en-US,en;q=0.5")
         .header("Accept-Encoding", "gzip, deflate, br")
@@ -147,7 +148,6 @@ pub async fn handle(
         .header("Sec-WebSocket-Key", "eWgpckzoDZnPYa96DGfS6w==")
         .header("DNT", "1")
         .header("Connection", "keep-alive, Upgrade")
-        .header("Cookie", "intercom-id-b84ayfyf=aa46e094-dfcd-4221-8847-49d26388cb99; intercom-device-id-b84ayfyf=d50bb5a1-bee5-48f8-8694-57d7d29f12fa; intercom-session-b84ayfyf=")
         .header("Sec-Fetch-Dest", "websocket")
         .header("Sec-Fetch-Mode", "websocket")
         .header("Sec-Fetch-Site", "same-site")
@@ -156,7 +156,9 @@ pub async fn handle(
         .header("Upgrade", "websocket")
         .body(())
         .unwrap();
+    tracing::debug!("Request built");
 
+    tracing::debug!("Establishing connection");
     let connection_result = tungstenite::connect(request);
     let connection;
 
