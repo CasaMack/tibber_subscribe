@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+#[derive(Debug)]
 pub struct SubscriptionQuery {
     pub token: String,
     pub home_id: String,
@@ -17,14 +18,14 @@ impl SubscriptionQuery {
 
     pub fn connection(&self) -> String {
         format!(
-            "{{\"type\":\"connection_init\",\"payload\":\"token={}\"}}",
+            "{{\"type\":\"connection_init\",\"payload\":{{\"token\":\"{}\"}}}}",
             self.token
         )
     }
 
     pub fn subscription(&self) -> String {
         format!(
-            "{{\"id\":\"1\",\"type\":\"start\",\"payload\":{{\"variables\":{{}},\"extensions\":{{}},\"operationName\":null,\"query\":\"subscription {{\\n  liveMeasurement(homeId: \\\"{}\\\") {{\\n    {}\\n}}\\n}}\\n\"}}}}",
+            "{{\"id\":\"1\",\"type\":\"subscribe\",\"payload\":{{\"variables\":{{}},\"extensions\":{{}},\"operationName\":null,\"query\":\"subscription {{\\n  liveMeasurement(homeId: \\\"{}\\\") {{\\n    {}\\n}}\\n}}\\n\"}}}}",
             self.home_id,
             self.fields
         )

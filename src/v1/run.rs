@@ -137,23 +137,27 @@ pub async fn handle(
     tracing::debug!("Building request");
     let request = http::Request::builder()
         .uri(api_endpoint.as_ref())
-        .header("Host", "websocket-api.tibber.com")
-        .header("Accept", "*/*")
-        .header("Accept-Language", "en-US,en;q=0.5")
-        .header("Accept-Encoding", "gzip, deflate, br")
-        .header("Sec-WebSocket-Version", "13")
-        .header("Origin", "https://developer.tibber.com")
-        .header("Sec-WebSocket-Protocol", "graphql-transport-ws")
-        .header("Sec-WebSocket-Extensions", "permessage-deflate")
-        .header("Sec-WebSocket-Key", "eWgpckzoDZnPYa96DGfS6w==")
-        .header("DNT", "1")
-        .header("Connection", "keep-alive, Upgrade")
-        .header("Sec-Fetch-Dest", "websocket")
-        .header("Sec-Fetch-Mode", "websocket")
-        .header("Sec-Fetch-Site", "same-site")
-        .header("Pragma", "no-cache")
-        .header("Cache-Control", "no-cache")
-        .header("Upgrade", "websocket")
+        .method("GET")
+.header("Host", "websocket-api.tibber.com")
+.header("Accept", "*/*")
+.header("Accept-Language", "en-US,en;q=0.5")
+.header("Accept-Encoding", "gzip, deflate, br")
+.header("Sec-WebSocket-Version", "13")
+.header("Origin", "https://developer.tibber.com")
+.header("Sec-WebSocket-Protocol", "graphql-transport-ws")
+.header("Sec-WebSocket-Extensions", "permessage-deflate")
+.header("Sec-WebSocket-Key", "iNwnisOA5oCUVnR3Gn1rUA==")
+.header("DNT", "1")
+.header("Connection", "keep-alive, Upgrade")
+.header("Sec-Fetch-Dest", "websocket")
+.header("Sec-Fetch-Mode", "websocket")
+.header("Sec-Fetch-Site", "same-site")
+.header("Pragma", "no-cache")
+.header("Cache-Control", "no-cache")
+.header("Upgrade", "websocket")
+.header("User-Agent", "CasaMack/1.0")
+
+
         .body(())
         .unwrap();
     tracing::debug!("Request built");
@@ -207,6 +211,7 @@ pub async fn handle(
             }
             match resp {
                 Ok(msg) => {
+                    println!("MSG: {:?}", msg);
                     let msg_json: serde_json::Value = serde_json::from_str(&msg.to_string())
                         .unwrap_or_else(|e| {
                             tracing::error!("Failed to parse message: {}", e);
