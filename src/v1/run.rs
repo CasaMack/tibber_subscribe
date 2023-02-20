@@ -214,6 +214,7 @@ pub async fn handle(
                     let msg_json: serde_json::Value = serde_json::from_str(&msg.to_string())
                         .unwrap_or_else(|e| {
                             tracing::error!("Failed to parse message: {}", e);
+                            tracing::error!("Message received: {}", &msg.to_string());
                             serde_json::Value::Null
                         });
                     let data = msg_json["payload"]["data"]["liveMeasurement"].as_object();
