@@ -171,10 +171,10 @@ pub async fn handle(
         let mut socket = connection.0;
         let response = connection.1;
         tracing::info!("Connected to the server");
-        tracing::info!("Response HTTP code: {}", response.status());
-        tracing::info!("Response contains the following headers:");
+        tracing::debug!("Response HTTP code: {}", response.status());
+        tracing::debug!("Response contains the following headers:");
         for (ref header, _value) in response.headers() {
-            tracing::info!("* {}", header);
+            tracing::debug!("* {}", header);
         }
 
         let client = Client::new(db_addr.as_str(), db_name.as_str());
@@ -189,7 +189,7 @@ pub async fn handle(
             .unwrap_or_else(|e| {
                 tracing::error!("Failed to request subscription: {}", e);
             });
-        tracing::info!("Subscribtion request sent");
+        tracing::debug!("Subscribtion request sent");
         let sock_arc = std::sync::Arc::new(std::sync::Mutex::new(socket));
         loop {
             let sock_ref = sock_arc.clone();
@@ -211,7 +211,6 @@ pub async fn handle(
             }
             match resp {
                 Ok(msg) => {
-                    println!("MSG: {:?}", msg);
                     let msg_json: serde_json::Value = serde_json::from_str(&msg.to_string())
                         .unwrap_or_else(|e| {
                             tracing::error!("Failed to parse message: {}", e);
@@ -221,7 +220,7 @@ pub async fn handle(
                     if data.is_none() {
                         let payload_type = msg_json["type"].as_str().unwrap();
                         if payload_type == "connection_ack" {
-                            tracing::info!("Subscription request acknowledged");
+                            tracing::debug!("Subscription request acknowledged");
                         } else {
                             tracing::warn!("Anomalous response type: {}", payload_type);
                             tracing::debug!("Response: {:?}", msg_json);
