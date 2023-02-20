@@ -218,7 +218,7 @@ pub async fn handle(
                         });
                     let data = msg_json["payload"]["data"]["liveMeasurement"].as_object();
                     if data.is_none() {
-                        let payload_type = msg_json["type"].as_str().unwrap();
+                        let payload_type = msg_json["type"].as_str().unwrap_or("None");
                         if payload_type == "connection_ack" {
                             tracing::debug!("Subscription request acknowledged");
                         } else {
