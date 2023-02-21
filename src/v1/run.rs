@@ -180,12 +180,12 @@ pub async fn handle(
         let client = Client::new(db_addr.as_str(), db_name.as_str());
 
         socket
-            .write_message(tungstenite::Message::Text(connection_request))
+            .write_message(tungstenite::Message::Text(dbg!(connection_request)))
             .unwrap_or_else(|e| {
                 tracing::error!("Failed to request connection: {}", e);
             });
         socket
-            .write_message(tungstenite::Message::Text(subscription_request))
+            .write_message(tungstenite::Message::Text(dbg!(subscription_request)))
             .unwrap_or_else(|e| {
                 tracing::error!("Failed to request subscription: {}", e);
             });
