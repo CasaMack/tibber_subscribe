@@ -25,6 +25,8 @@ async fn main() {
         .with(Field::MaxPower)
         .build();
 
+    println!("{}", subscription_request.subscription());
+
     loop {
         let res = handle(
             api_endpoint.clone(),

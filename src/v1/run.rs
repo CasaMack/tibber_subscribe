@@ -209,7 +209,7 @@ pub async fn handle(
             if let Err(_) = resp {
                 return Err(());
             }
-            match resp {
+            match dbg!(resp) {
                 Ok(msg) => {
                     let msg_json: serde_json::Value = serde_json::from_str(&msg.to_string())
                         .unwrap_or_else(|e| {
