@@ -25,7 +25,7 @@ impl SubscriptionQuery {
 
     pub fn subscription(&self) -> String {
         format!(
-            "{{\"id\":\"1\",\"type\":\"subscribe\",\"payload\":{{\"variables\":{{}},\"extensions\":{{}},\"operationName\":null,\"query\":\"subscription {{\\n  liveMeasurement(homeId: \\\"{}\\\") {{\\n    {}\\n}}\\n}}\\n\"}}}}",
+            "{{\"id\":\"1\",\"type\":\"subscribe\",\"payload\":{{\"variables\":{{}},\"extensions\":{{}},\"query\":\"subscription {{\\n  liveMeasurement(homeId: \\\"{}\\\") {{\\n    {}\\n}}\\n}}\\n\"}}}}",
             self.home_id,
             self.fields
         )
