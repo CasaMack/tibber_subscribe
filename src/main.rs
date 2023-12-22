@@ -3,6 +3,8 @@ use tibber_subscribe::v1::{
     tibber::{Field, SubscriptionQueryBuilder},
 };
 
+use tokio::time;
+
 #[tokio::main]
 async fn main() {
     let (subscriber, _guard) = get_logger();
@@ -42,5 +44,7 @@ async fn main() {
                 tracing::error!("Top level error")
             }
         }
+
+        time::sleep(tokio::time::Duration::new(3, 0)).await;
     }
 }
